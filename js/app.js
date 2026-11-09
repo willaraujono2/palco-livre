@@ -1,100 +1,227 @@
+
 import { db, auth } from "./firebase.js";
+
+import {
+    createUserWithEmailAndPassword,
+    signInWithEmailAndPassword,
+    signOut,
+    onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+
 // =====================================
-// PALCO LIVRE - PESQUISA MUSICAL
-// Integração com a iTunes Search API
+// PALCO LIVRE - ELEMENTOS DA PÁGINA
 // =====================================
 
-// Elementos da página
+// Pesquisa musical
 const searchInput = document.getElementById("artistSearch");
 const searchButton = document.getElementById("searchButton");
 const statusMessage = document.getElementById("status");
 const resultsContainer = document.getElementById("results");
 
-// Endereço da API externa
+// Autenticação
+const userEmail = document.getElementById("userEmail");
+const userPassword = document.getElementById("userPassword");
+const registerButton = document.getElementById("registerButton");
+const loginButton = document.getElementById("loginButton");
+const logoutButton = document.getElementById("logoutButton");
+const authStatus = document.getElementById("authStatus");
+
+// API musical
 const API_URL = "https://itunes.apple.com/search";
 
 // =====================================
-// FUNÇÃO PARA PESQUISAR ARTISTAS E MÚSICAS
+// CADASTRO DE USUÁRIO
+// =====================================
+
+async function registerUser() {
+    const email = userEmail.value.trim();
+    const password = userPassword.value;
+
+    if (!email || !password) {
+        authStatus.textContent = "Preencha o e-mail e a senha.";
+        return;
+    }
+
+    if (password.length < 6) {
+        authStatus.textContent = "A senha deve ter pelo menos 6 caracteres.";
+        return;
+    }
+
+    registerButton.disabled = true;
+    authStatus.textContent = "Criando sua conta...";
+
+    try {
+        await createUserWithEmailAndPassword(auth, email, password);
+
+        authStatus.textContent = "Conta criada com sucesso! Bem-vindo ao Palco Livre.";
+
+        userPassword.value = "";
+
+    } catch (error) {
+        console.error("Erro no cadastro:", error);
+
+        if (error.code === "auth/email-already-in-use") {
+            authStatus.textContent = "Este e-mail já está cadastrado.";
+        } else if (error.code === "auth/invalid-email") {
+            authStatus.textContent = "Digite um e-mail válido.";
+        } else if (error.code === "auth/weak-password") {
+            authStatus.textContent = "A senha é muito fraca.";
+        } else {
+            authStatus.textContent = "Não foi possível criar a conta. Tente novamente.";
+        }
+
+    } finally {
+        registerButton.disabled = false;
+    }
+}
+
+// =====================================
+// LOGIN DE USUÁRIO
+// =====================================
+
+async function loginUser() {
+    const email = userEmail.value.trim();
+    const password = userPassword.value;
+
+    if (!email || !password) {
+        authStatus.textContent = "Preencha o e-mail e a senha.";
+        return;
+    }
+
+    loginButton.disabled = true;
+    authStatus.textContent = "Verificando seus dados...";
+
+    try {
+        await signInWithEmailAndPassword(auth, email, password);
+
+        authStatus.textContent = "Login realizado com sucesso!";
+
+        userPassword.value = "";
+
+    } catch (error) {
+        console.error("Erro no login:", error);
+
+        if (
+            error.code === "auth/invalid-credential" ||
+            error.code === "auth/wrong-password" ||
+            error.code === "auth/user-not-found"
+        ) {
+            authStatus.textContent = "E-mail ou senha incorretos.";
+        } else if (error.code === "auth/invalid-email") {
+            authStatus.textContent = "Digite um e-mail válido.";
+        } else {
+            authStatus.textContent = "Não foi possível entrar. Tente novamente.";
+        }
+
+    } finally {
+        loginButton.disabled = false;
+    }
+}
+
+// =====================================
+// LOGOUT - SAIR DA CONTA
+// =====================================
+
+async function logoutUser() {
+    try {
+        await signOut(auth);
+        authStatus.textContent = "Você saiu da sua conta.";
+
+    } catch (error) {
+        console.error("Erro ao sair:", error);
+        authStatus.textContent = "Não foi possível sair da conta.";
+    }
+}
+
+// =====================================
+// ACOMPANHAR ESTADO DA AUTENTICAÇÃO
+// =====================================
+
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        authStatus.textContent =
+            "Você está conectado como: " + user.email;
+
+        registerButton.disabled = true;
+        loginButton.disabled = true;
+        logoutButton.disabled = false;
+
+    } else {
+        registerButton.disabled = false;
+        loginButton.disabled = false;
+        logoutButton.disabled = true;
+    }
+});
+
+// Eventos dos botões de autenticação
+registerButton.addEventListener("click", registerUser);
+loginButton.addEventListener("click", loginUser);
+logoutButton.addEventListener("click", logoutUser);
+
+// =====================================
+// PESQUISA MUSICAL - ITUNES API
 // =====================================
 
 async function searchMusic() {
-
     const searchTerm = searchInput.value.trim();
 
-    // Verifica se o usuário digitou alguma coisa
     if (!searchTerm) {
         statusMessage.textContent = "Digite o nome de um artista ou banda.";
         searchInput.focus();
         return;
     }
 
-    // Feedback de carregamento
     searchButton.disabled = true;
     searchButton.textContent = "Pesquisando...";
     statusMessage.textContent = "Buscando informações musicais...";
     resultsContainer.replaceChildren();
 
     try {
-
-        // Consulta à API utilizando fetch
         const response = await fetch(
             `${API_URL}?term=${encodeURIComponent(searchTerm)}&entity=musicArtist,song,musicTrack,album&limit=12`
         );
 
-        // Verifica se a resposta foi bem-sucedida
         if (!response.ok) {
             throw new Error("Não foi possível consultar a API.");
         }
 
-        // Converte a resposta para JSON
         const data = await response.json();
 
-        // Verifica se existem resultados
         if (!data.results || data.results.length === 0) {
-            statusMessage.textContent = "Nenhum resultado encontrado. Tente outra pesquisa.";
+            statusMessage.textContent =
+                "Nenhum resultado encontrado. Tente outra pesquisa.";
             return;
         }
 
-        // Exibe os resultados na tela
         displayResults(data.results);
 
         statusMessage.textContent =
             `${data.results.length} resultado(s) encontrado(s).`;
 
     } catch (error) {
-
-        // Tratamento de erros
         console.error("Erro na pesquisa musical:", error);
 
         statusMessage.textContent =
             "Erro ao buscar dados musicais. Verifique sua conexão e tente novamente.";
 
     } finally {
-
-        // Restaura o botão
         searchButton.disabled = false;
         searchButton.textContent = "Pesquisar";
-
     }
 }
 
 // =====================================
-// FUNÇÃO PARA EXIBIR OS RESULTADOS
+// EXIBIR RESULTADOS DA PESQUISA
 // =====================================
 
 function displayResults(musicList) {
-
     resultsContainer.replaceChildren();
 
     musicList.forEach((music) => {
-
-        // Cria o cartão
         const card = document.createElement("article");
         card.className = "card";
 
-        // Imagem do artista ou álbum
         if (music.artworkUrl100) {
-
             const image = document.createElement("img");
 
             image.src = music.artworkUrl100;
@@ -108,7 +235,6 @@ function displayResults(musicList) {
             card.appendChild(image);
         }
 
-        // Nome da música, álbum ou artista
         const title = document.createElement("h3");
 
         title.textContent =
@@ -119,7 +245,6 @@ function displayResults(musicList) {
 
         card.appendChild(title);
 
-        // Nome do artista
         const artist = document.createElement("p");
 
         artist.textContent =
@@ -127,9 +252,7 @@ function displayResults(musicList) {
 
         card.appendChild(artist);
 
-        // Gênero musical
         if (music.primaryGenreName) {
-
             const genre = document.createElement("p");
 
             genre.textContent = "Gênero: " + music.primaryGenreName;
@@ -137,14 +260,12 @@ function displayResults(musicList) {
             card.appendChild(genre);
         }
 
-        // Link para mais informações
         const musicLink =
             music.trackViewUrl ||
             music.collectionViewUrl ||
             music.artistViewUrl;
 
         if (musicLink) {
-
             const link = document.createElement("a");
 
             link.href = musicLink;
@@ -160,24 +281,18 @@ function displayResults(musicList) {
             card.appendChild(link);
         }
 
-        // Adiciona o cartão à página
         resultsContainer.appendChild(card);
-
     });
 }
 
 // =====================================
-// EVENTOS DOS BOTÕES
+// EVENTOS DA PESQUISA MUSICAL
 // =====================================
 
-// Pesquisa ao clicar no botão
 searchButton.addEventListener("click", searchMusic);
 
-// Pesquisa ao pressionar Enter
 searchInput.addEventListener("keydown", (event) => {
-
     if (event.key === "Enter") {
         searchMusic();
     }
-
 });
