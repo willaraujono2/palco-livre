@@ -14,7 +14,14 @@ import { getAuth } from
 
 // Configuração do projeto Firebase
 const firebaseConfig = {
-    apiKey: "SUA_API_KEY",
+    apiKey: "const firebaseConfig = {
+  apiKey: "AiZaSyDTit2Iwop4R8ZRQytjk9-tzgsiOoEVoMw",
+  authDomain: "palco-livre-329eb.firebaseapp.com",
+  projectId: "palco-livre-329eb",
+  storageBucket: "palco-livre-329eb.appspot.com",
+  messagingSenderId: "1080167380185",
+  appId: "1:1080167380185:web:3a96ce38776e6805687ac8"
+};",
     authDomain: "palco-livre-329eb.firebaseapp.com",
     projectId: "palco-livre-329eb",
     storageBucket: "palco-livre-329eb.appspot.com",
