@@ -1,0 +1,84 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Palco Livre - Conectando músicos e bandas.">
+    <title>Palco Livre | Música e Conexões</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <header>
+        <div class="container navbar">
+            <a href="index.html" class="logo">🎸 Palco Livre</a>
+
+            <nav>
+                <a href="#inicio">Início</a>
+                <a href="#musicos">Músicos</a>
+                <a href="#classificados">Classificados</a>
+                <a href="#musicas">Universo Musical</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero" id="inicio">
+            <div class="container">
+                <h1>Seu próximo palco começa aqui!</h1>
+                <p>
+                    Encontre músicos, forme bandas,
+                    anuncie instrumentos e descubra o universo musical.
+                </p>
+                <a href="#musicos" class="btn">Explorar comunidade</a>
+            </div>
+        </section>
+
+        <section class="container sections" id="musicos">
+            <h2>Conecte-se através da música</h2>
+
+            <div class="cards">
+                <article class="card">
+                    <h3>🎤 Músicos e Bandas</h3>
+                    <p>Encontre integrantes ou uma banda para tocar.</p>
+                </article>
+
+                <article class="card" id="classificados">
+                    <h3>🎸 Classificados</h3>
+                    <p>Compre, venda e anuncie instrumentos musicais.</p>
+                </article>
+
+                <article class="card">
+                    <h3>🥁 Equipamentos</h3>
+                    <p>Conheça instrumentos e equipamentos musicais.</p>
+                </article>
+            </div>
+        </section>
+
+        <section class="container music-search" id="musicas">
+            <h2>Explore o universo musical</h2>
+            <p>Pesquise artistas, álbuns e músicas.</p>
+
+            <div class="search-box">
+                <input
+                    type="text"
+                    id="artistSearch"
+                    placeholder="Digite o nome de um artista..."
+                >
+                <button id="searchButton">Pesquisar</button>
+            </div>
+
+            <p id="status"></p>
+            <div id="results" class="cards"></div>
+        </section>
+    </main>
+
+    <footer>
+        <p>Palco Livre © 2026 - Projeto Acadêmico WEB 2</p>
+        <p>Conectando pessoas através da música.</p>
+    </footer>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
