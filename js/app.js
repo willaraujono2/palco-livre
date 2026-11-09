@@ -1,4 +1,4 @@
-
+import { db, auth } from "./firebase.js";
 // =====================================
 // PALCO LIVRE - PESQUISA MUSICAL
 // Integração com a iTunes Search API
