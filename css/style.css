@@ -1,0 +1,265 @@
+
+/* =====================================
+   PALCO LIVRE - IDENTIDADE VISUAL
+   ===================================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: #101018;
+    color: #f5f5f5;
+    line-height: 1.6;
+}
+
+/* CONTAINER */
+
+.container {
+    width: 90%;
+    max-width: 1150px;
+    margin: auto;
+}
+
+/* CABEÇALHO */
+
+header {
+    background: #191923;
+    border-bottom: 1px solid #30303d;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.navbar {
+    min-height: 75px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.logo {
+    color: #ff8c42;
+    font-size: 25px;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+nav {
+    display: flex;
+    gap: 25px;
+    flex-wrap: wrap;
+}
+
+nav a {
+    color: #dddddd;
+    text-decoration: none;
+    font-size: 14px;
+    transition: 0.3s;
+}
+
+nav a:hover {
+    color: #ff8c42;
+}
+
+/* DESTAQUE PRINCIPAL */
+
+.hero {
+    background: linear-gradient(
+        120deg,
+        #24153d,
+        #17172b,
+        #382044
+    );
+    padding: 100px 0;
+    text-align: center;
+}
+
+.hero h1 {
+    font-size: clamp(30px, 5vw, 48px);
+    margin-bottom: 20px;
+    color: #ffffff;
+}
+
+.hero p {
+    max-width: 650px;
+    margin: 0 auto 30px;
+    color: #d0cbdc;
+    font-size: 17px;
+}
+
+.btn {
+    display: inline-block;
+    background: #ff8c42;
+    color: #171717;
+    padding: 13px 28px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.btn:hover {
+    background: #ffaa70;
+    transform: translateY(-2px);
+}
+
+/* SEÇÕES */
+
+.sections,
+.music-search {
+    padding-top: 65px;
+    padding-bottom: 65px;
+}
+
+h2 {
+    font-size: 28px;
+    margin-bottom: 25px;
+    color: #ff9b59;
+}
+
+/* CARTÕES */
+
+.cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 22px;
+}
+
+.card {
+    background: #1c1c29;
+    padding: 28px;
+    border: 1px solid #333343;
+    border-radius: 12px;
+    transition: 0.3s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    border-color: #ff8c42;
+}
+
+.card h3 {
+    color: #ffffff;
+    margin-bottom: 12px;
+    font-size: 19px;
+}
+
+.card p {
+    color: #b9b9c5;
+}
+
+/* PESQUISA MUSICAL */
+
+.music-search {
+    background: #15151f;
+    padding-left: 5%;
+    padding-right: 5%;
+    border-radius: 15px;
+    margin-bottom: 60px;
+}
+
+.music-search > p {
+    color: #c5c5d0;
+    margin-bottom: 20px;
+}
+
+.search-box {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.search-box input {
+    flex: 1;
+    min-width: 0;
+    padding: 14px;
+    border-radius: 8px;
+    border: 1px solid #444455;
+    background: #22222f;
+    color: white;
+    font-size: 15px;
+    outline: none;
+}
+
+.search-box input:focus {
+    border-color: #ff8c42;
+}
+
+.search-box button {
+    padding: 14px 24px;
+    background: #ff8c42;
+    border: none;
+    border-radius: 8px;
+    color: #171717;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.search-box button:hover {
+    background: #ffaa70;
+}
+
+#status {
+    margin-bottom: 20px;
+    color: #ffb276;
+}
+
+#results .card {
+    overflow-wrap: anywhere;
+}
+
+/* RODAPÉ */
+
+footer {
+    background: #191923;
+    border-top: 1px solid #30303d;
+    text-align: center;
+    padding: 30px 15px;
+    color: #9999a8;
+    font-size: 13px;
+}
+
+/* RESPONSIVIDADE */
+
+@media (max-width: 768px) {
+
+    .navbar {
+        flex-direction: column;
+        padding: 18px 0;
+    }
+
+    nav {
+        justify-content: center;
+        gap: 15px;
+    }
+
+    .hero {
+        padding: 70px 15px;
+    }
+
+    .cards {
+        grid-template-columns: 1fr;
+    }
+
+    .search-box {
+        flex-direction: column;
+    }
+
+    .search-box button {
+        width: 100%;
+    }
+
+    h2 {
+        font-size: 23px;
+    }
+}
