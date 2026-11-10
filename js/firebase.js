@@ -8,7 +8,7 @@ import { getAuth } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-aut
 
 // Configuração do projeto Firebase
 const firebaseConfig = {
-    apiKey: "AIzaSyDTit2Iwop4R8ZRQytjk9-tzgsiOoEVoMw",
+    apiKey: "AIzaSyDTIt2Iwop4R8ZRQytjk9-tzgsiOoEVoMw",
     authDomain: "palco-livre-329eb.firebaseapp.com",
     projectId: "palco-livre-329eb",
     storageBucket: "palco-livre-329eb.firebasestorage.app",
