@@ -11,6 +11,8 @@ import {
 import {
     collection,
     addDoc,
+    doc,
+    updateDoc,
     onSnapshot,
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
@@ -45,6 +47,11 @@ const adsList = document.getElementById("adsList");
 
 // API musical
 const API_URL = "https://itunes.apple.com/search";
+
+// Controle da edição
+let editingAdId = null;
+let currentUser = null;
+let cachedAds = [];
 
 // =====================================
 // CADASTRO DE USUÁRIO
@@ -91,7 +98,7 @@ async function registerUser() {
         }
 
     } finally {
-        registerButton.disabled = false;
+        registerButton.disabled = !!auth.currentUser;
     }
 }
 
@@ -134,7 +141,7 @@ async function loginUser() {
         }
 
     } finally {
-        loginButton.disabled = false;
+        loginButton.disabled = !!auth.currentUser;
     }
 }
 
@@ -159,6 +166,8 @@ async function logoutUser() {
 // =====================================
 
 onAuthStateChanged(auth, (user) => {
+    currentUser = user;
+
     if (user) {
         authStatus.textContent =
             "Você está conectado como: " + user.email;
@@ -173,6 +182,8 @@ onAuthStateChanged(auth, (user) => {
             "Você está conectado e já pode publicar anúncios.";
 
     } else {
+        authStatus.textContent = "Você não está conectado.";
+
         registerButton.disabled = false;
         loginButton.disabled = false;
         logoutButton.disabled = true;
@@ -181,7 +192,17 @@ onAuthStateChanged(auth, (user) => {
 
         adStatus.textContent =
             "Faça login ou crie uma conta para publicar anúncios.";
+
+        // Cancela uma edição se o usuário sair da conta
+        if (editingAdId !== null) {
+            editingAdId = null;
+            adForm.reset();
+            adSubmitButton.textContent = "Publicar anúncio";
+        }
     }
+
+    // Atualiza os botões de edição conforme o usuário conectado
+    displayAds(cachedAds);
 });
 
 // Eventos da autenticação
@@ -190,7 +211,7 @@ loginButton.addEventListener("click", loginUser);
 logoutButton.addEventListener("click", logoutUser);
 
 // =====================================
-// CADASTRAR ANÚNCIO NO FIREBASE
+// CADASTRAR OU EDITAR ANÚNCIO
 // =====================================
 
 async function publishAd(event) {
@@ -220,39 +241,103 @@ async function publishAd(event) {
     }
 
     adSubmitButton.disabled = true;
-    adSubmitButton.textContent = "Publicando...";
-    adStatus.textContent = "Salvando anúncio no Firebase...";
+
+    adSubmitButton.textContent =
+        editingAdId ? "Salvando alterações..." : "Publicando...";
+
+    adStatus.textContent =
+        editingAdId
+            ? "Atualizando anúncio no Firebase..."
+            : "Salvando anúncio no Firebase...";
 
     try {
-        await addDoc(collection(db, "anuncios"), {
+        const anuncioData = {
             titulo: title,
             categoria: category,
             preco: price,
-            descricao: description,
-            ownerId: user.uid,
-            ownerEmail: user.email,
-            criadoEm: serverTimestamp()
-        });
+            descricao: description
+        };
+
+        if (editingAdId !== null) {
+
+            // UPDATE: atualiza o anúncio existente
+            const anuncioRef = doc(db, "anuncios", editingAdId);
+
+            await updateDoc(anuncioRef, anuncioData);
+
+            adStatus.textContent =
+                "Anúncio atualizado com sucesso!";
+
+            editingAdId = null;
+
+        } else {
+
+            // CREATE: cadastra um novo anúncio
+            await addDoc(collection(db, "anuncios"), {
+                ...anuncioData,
+                ownerId: user.uid,
+                ownerEmail: user.email,
+                criadoEm: serverTimestamp()
+            });
+
+            adStatus.textContent =
+                "Anúncio publicado com sucesso!";
+        }
 
         adForm.reset();
 
-        adStatus.textContent =
-            "Anúncio publicado com sucesso!";
-
     } catch (error) {
-        console.error("Erro ao publicar anúncio:", error);
+        console.error("Erro ao salvar anúncio:", error);
 
         adStatus.textContent =
-            "Não foi possível publicar. Verifique sua conexão e tente novamente.";
+            "Não foi possível salvar. Verifique sua conexão e suas permissões.";
 
     } finally {
         adSubmitButton.disabled = !auth.currentUser;
-        adSubmitButton.textContent = "Publicar anúncio";
+
+        adSubmitButton.textContent =
+            editingAdId !== null
+                ? "Salvar alterações"
+                : "Publicar anúncio";
     }
 }
 
-// Registrar evento do formulário
 adForm.addEventListener("submit", publishAd);
+
+// =====================================
+// CARREGAR DADOS PARA EDIÇÃO
+// =====================================
+
+function editAd(anuncio) {
+
+    // Confirma se o usuário é o proprietário
+    if (!currentUser || currentUser.uid !== anuncio.ownerId) {
+        adStatus.textContent =
+            "Você não tem permissão para editar este anúncio.";
+        return;
+    }
+
+    editingAdId = anuncio.id;
+
+    // Preenche o formulário com os dados existentes
+    adTitle.value = anuncio.titulo || "";
+    adCategory.value = anuncio.categoria || "";
+    adPrice.value = anuncio.preco ?? "";
+    adDescription.value = anuncio.descricao || "";
+
+    // Altera o botão para indicar a edição
+    adSubmitButton.textContent = "Salvar alterações";
+    adSubmitButton.disabled = false;
+
+    adStatus.textContent =
+        "Editando anúncio. Faça as alterações e clique em Salvar alterações.";
+
+    // Leva o usuário até o formulário
+    adForm.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+    });
+}
 
 // =====================================
 // LISTAR ANÚNCIOS DO FIREBASE
@@ -300,6 +385,20 @@ function displayAds(anuncios) {
             (anuncio.ownerEmail || "Usuário do Palco Livre");
         card.appendChild(seller);
 
+        // Botão de edição somente para o proprietário
+        if (currentUser && currentUser.uid === anuncio.ownerId) {
+            const editButton = document.createElement("button");
+
+            editButton.type = "button";
+            editButton.textContent = "Editar anúncio";
+
+            editButton.addEventListener("click", () => {
+                editAd(anuncio);
+            });
+
+            card.appendChild(editButton);
+        }
+
         adsList.appendChild(card);
     });
 }
@@ -312,23 +411,24 @@ onSnapshot(
     collection(db, "anuncios"),
 
     (snapshot) => {
-        const anuncios = [];
+        cachedAds = [];
 
         snapshot.forEach((documento) => {
-            anuncios.push({
+            cachedAds.push({
                 id: documento.id,
                 ...documento.data()
             });
         });
 
-        anuncios.sort((a, b) => {
+        // Exibe os anúncios mais recentes primeiro
+        cachedAds.sort((a, b) => {
             const dataA = a.criadoEm?.toMillis?.() || 0;
             const dataB = b.criadoEm?.toMillis?.() || 0;
 
             return dataB - dataA;
         });
 
-        displayAds(anuncios);
+        displayAds(cachedAds);
     },
 
     (error) => {
