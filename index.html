@@ -98,6 +98,67 @@
             </div>
         </section>
 
+<!-- CLASSIFICADOS DE INSTRUMENTOS -->
+<section class="container classified-section" id="anuncios">
+
+    <h2>Classificados de Instrumentos</h2>
+
+    <p>
+        Anuncie instrumentos e equipamentos musicais
+        para a comunidade Palco Livre.
+    </p>
+
+    <!-- FORMULÁRIO DE CADASTRO -->
+    <form id="adForm">
+
+        <input
+            type="text"
+            id="adTitle"
+            placeholder="Nome do instrumento"
+            required
+        >
+
+        <select id="adCategory" required>
+            <option value="">Selecione a categoria</option>
+            <option value="Cordas">Instrumentos de cordas</option>
+            <option value="Percussão">Percussão</option>
+            <option value="Sopro">Sopro</option>
+            <option value="Teclados">Teclados</option>
+            <option value="Equipamentos">Equipamentos</option>
+            <option value="Acessórios">Acessórios</option>
+        </select>
+
+        <input
+            type="number"
+            id="adPrice"
+            placeholder="Preço (R$)"
+            min="0"
+            step="0.01"
+            required
+        >
+
+        <textarea
+            id="adDescription"
+            placeholder="Descreva o instrumento..."
+            rows="4"
+            required
+        ></textarea>
+
+        <button type="submit" id="adSubmitButton">
+            Publicar anúncio
+        </button>
+
+    </form>
+
+    <p id="adStatus" aria-live="polite"></p>
+
+    <!-- LISTAGEM DOS ANÚNCIOS -->
+    <h3>Instrumentos anunciados</h3>
+
+    <div id="adsList" class="cards"></div>
+
+</section>
+
         <!-- PESQUISA MUSICAL -->
         <section class="container music-search" id="musicas">
             <h2>Explore o universo musical</h2>
