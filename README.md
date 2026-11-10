@@ -8,7 +8,7 @@ O projeto foi desenvolvido como atividade acadêmica, utilizando tecnologias web
 
 ## 2. Integrante
 
-- **Estudante:** [INFORME SEU NOME COMPLETO]
+- **Estudante:** Will - IFRJ- PInheiral
 
 ## 3. Aplicação publicada
 
