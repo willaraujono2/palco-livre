@@ -11,7 +11,7 @@ const firebaseConfig = {
     apiKey: "AIzaSyDTit2Iwop4R8ZRQytjk9-tzgsiOoEVoMw",
     authDomain: "palco-livre-329eb.firebaseapp.com",
     projectId: "palco-livre-329eb",
-    storageBucket: "palco-livre-329eb.appspot.com",
+    storageBucket: "palco-livre-329eb.firebasestorage.app",
     messagingSenderId: "1080167380185",
     appId: "1:1080167380185:web:3a96ce38776e6805687ac8"
 };
