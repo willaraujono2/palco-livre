@@ -8,6 +8,13 @@ import {
     onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 
+import {
+    collection,
+    addDoc,
+    onSnapshot,
+    serverTimestamp
+} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+
 // =====================================
 // PALCO LIVRE - ELEMENTOS DA PÁGINA
 // =====================================
@@ -26,6 +33,16 @@ const loginButton = document.getElementById("loginButton");
 const logoutButton = document.getElementById("logoutButton");
 const authStatus = document.getElementById("authStatus");
 
+// Classificados
+const adForm = document.getElementById("adForm");
+const adTitle = document.getElementById("adTitle");
+const adCategory = document.getElementById("adCategory");
+const adPrice = document.getElementById("adPrice");
+const adDescription = document.getElementById("adDescription");
+const adSubmitButton = document.getElementById("adSubmitButton");
+const adStatus = document.getElementById("adStatus");
+const adsList = document.getElementById("adsList");
+
 // API musical
 const API_URL = "https://itunes.apple.com/search";
 
@@ -43,7 +60,8 @@ async function registerUser() {
     }
 
     if (password.length < 6) {
-        authStatus.textContent = "A senha deve ter pelo menos 6 caracteres.";
+        authStatus.textContent =
+            "A senha deve ter pelo menos 6 caracteres.";
         return;
     }
 
@@ -53,7 +71,8 @@ async function registerUser() {
     try {
         await createUserWithEmailAndPassword(auth, email, password);
 
-        authStatus.textContent = "Conta criada com sucesso! Bem-vindo ao Palco Livre.";
+        authStatus.textContent =
+            "Conta criada com sucesso! Bem-vindo ao Palco Livre.";
 
         userPassword.value = "";
 
@@ -67,7 +86,8 @@ async function registerUser() {
         } else if (error.code === "auth/weak-password") {
             authStatus.textContent = "A senha é muito fraca.";
         } else {
-            authStatus.textContent = "Não foi possível criar a conta. Tente novamente.";
+            authStatus.textContent =
+                "Não foi possível criar a conta. Tente novamente.";
         }
 
     } finally {
@@ -95,7 +115,6 @@ async function loginUser() {
         await signInWithEmailAndPassword(auth, email, password);
 
         authStatus.textContent = "Login realizado com sucesso!";
-
         userPassword.value = "";
 
     } catch (error) {
@@ -110,7 +129,8 @@ async function loginUser() {
         } else if (error.code === "auth/invalid-email") {
             authStatus.textContent = "Digite um e-mail válido.";
         } else {
-            authStatus.textContent = "Não foi possível entrar. Tente novamente.";
+            authStatus.textContent =
+                "Não foi possível entrar. Tente novamente.";
         }
 
     } finally {
@@ -129,7 +149,8 @@ async function logoutUser() {
 
     } catch (error) {
         console.error("Erro ao sair:", error);
-        authStatus.textContent = "Não foi possível sair da conta.";
+        authStatus.textContent =
+            "Não foi possível sair da conta.";
     }
 }
 
@@ -146,17 +167,177 @@ onAuthStateChanged(auth, (user) => {
         loginButton.disabled = true;
         logoutButton.disabled = false;
 
+        adSubmitButton.disabled = false;
+
+        adStatus.textContent =
+            "Você está conectado e já pode publicar anúncios.";
+
     } else {
         registerButton.disabled = false;
         loginButton.disabled = false;
         logoutButton.disabled = true;
+
+        adSubmitButton.disabled = true;
+
+        adStatus.textContent =
+            "Faça login ou crie uma conta para publicar anúncios.";
     }
 });
 
-// Eventos dos botões de autenticação
+// Eventos da autenticação
 registerButton.addEventListener("click", registerUser);
 loginButton.addEventListener("click", loginUser);
 logoutButton.addEventListener("click", logoutUser);
+
+// =====================================
+// CADASTRAR ANÚNCIO NO FIREBASE
+// =====================================
+
+async function publishAd(event) {
+    event.preventDefault();
+
+    const user = auth.currentUser;
+
+    if (!user) {
+        adStatus.textContent =
+            "Você precisa estar conectado para publicar um anúncio.";
+        return;
+    }
+
+    const title = adTitle.value.trim();
+    const category = adCategory.value;
+    const price = Number(adPrice.value);
+    const description = adDescription.value.trim();
+
+    if (!title || !category || !adPrice.value || !description) {
+        adStatus.textContent = "Preencha todos os campos.";
+        return;
+    }
+
+    if (!Number.isFinite(price) || price < 0) {
+        adStatus.textContent = "Informe um preço válido.";
+        return;
+    }
+
+    adSubmitButton.disabled = true;
+    adSubmitButton.textContent = "Publicando...";
+    adStatus.textContent = "Salvando anúncio no Firebase...";
+
+    try {
+        await addDoc(collection(db, "anuncios"), {
+            titulo: title,
+            categoria: category,
+            preco: price,
+            descricao: description,
+            ownerId: user.uid,
+            ownerEmail: user.email,
+            criadoEm: serverTimestamp()
+        });
+
+        adForm.reset();
+
+        adStatus.textContent =
+            "Anúncio publicado com sucesso!";
+
+    } catch (error) {
+        console.error("Erro ao publicar anúncio:", error);
+
+        adStatus.textContent =
+            "Não foi possível publicar. Verifique sua conexão e tente novamente.";
+
+    } finally {
+        adSubmitButton.disabled = !auth.currentUser;
+        adSubmitButton.textContent = "Publicar anúncio";
+    }
+}
+
+// Registrar evento do formulário
+adForm.addEventListener("submit", publishAd);
+
+// =====================================
+// LISTAR ANÚNCIOS DO FIREBASE
+// =====================================
+
+function displayAds(anuncios) {
+    adsList.replaceChildren();
+
+    if (anuncios.length === 0) {
+        adsList.textContent =
+            "Ainda não existem anúncios publicados.";
+        return;
+    }
+
+    anuncios.forEach((anuncio) => {
+        const card = document.createElement("article");
+        card.className = "card";
+
+        const title = document.createElement("h3");
+        title.textContent = anuncio.titulo || "Instrumento";
+        card.appendChild(title);
+
+        const category = document.createElement("p");
+        category.textContent =
+            "Categoria: " + (anuncio.categoria || "Não informada");
+        card.appendChild(category);
+
+        const price = document.createElement("p");
+        price.textContent =
+            "Preço: " +
+            Number(anuncio.preco || 0).toLocaleString("pt-BR", {
+                style: "currency",
+                currency: "BRL"
+            });
+        card.appendChild(price);
+
+        const description = document.createElement("p");
+        description.textContent =
+            anuncio.descricao || "Sem descrição.";
+        card.appendChild(description);
+
+        const seller = document.createElement("small");
+        seller.textContent =
+            "Anunciante: " +
+            (anuncio.ownerEmail || "Usuário do Palco Livre");
+        card.appendChild(seller);
+
+        adsList.appendChild(card);
+    });
+}
+
+// =====================================
+// ACOMPANHAR ANÚNCIOS EM TEMPO REAL
+// =====================================
+
+onSnapshot(
+    collection(db, "anuncios"),
+
+    (snapshot) => {
+        const anuncios = [];
+
+        snapshot.forEach((documento) => {
+            anuncios.push({
+                id: documento.id,
+                ...documento.data()
+            });
+        });
+
+        anuncios.sort((a, b) => {
+            const dataA = a.criadoEm?.toMillis?.() || 0;
+            const dataB = b.criadoEm?.toMillis?.() || 0;
+
+            return dataB - dataA;
+        });
+
+        displayAds(anuncios);
+    },
+
+    (error) => {
+        console.error("Erro ao carregar anúncios:", error);
+
+        adsList.textContent =
+            "Não foi possível carregar os anúncios.";
+    }
+);
 
 // =====================================
 // PESQUISA MUSICAL - ITUNES API
@@ -166,14 +347,17 @@ async function searchMusic() {
     const searchTerm = searchInput.value.trim();
 
     if (!searchTerm) {
-        statusMessage.textContent = "Digite o nome de um artista ou banda.";
+        statusMessage.textContent =
+            "Digite o nome de um artista ou banda.";
         searchInput.focus();
         return;
     }
 
     searchButton.disabled = true;
     searchButton.textContent = "Pesquisando...";
-    statusMessage.textContent = "Buscando informações musicais...";
+    statusMessage.textContent =
+        "Buscando informações musicais...";
+
     resultsContainer.replaceChildren();
 
     try {
@@ -225,7 +409,8 @@ function displayResults(musicList) {
             const image = document.createElement("img");
 
             image.src = music.artworkUrl100;
-            image.alt = `Imagem de ${music.trackName || music.collectionName || music.artistName || "conteúdo musical"}`;
+            image.alt =
+                `Imagem de ${music.trackName || music.collectionName || music.artistName || "conteúdo musical"}`;
             image.loading = "lazy";
             image.style.width = "100%";
             image.style.maxWidth = "180px";
@@ -255,7 +440,8 @@ function displayResults(musicList) {
         if (music.primaryGenreName) {
             const genre = document.createElement("p");
 
-            genre.textContent = "Gênero: " + music.primaryGenreName;
+            genre.textContent =
+                "Gênero: " + music.primaryGenreName;
 
             card.appendChild(genre);
         }
