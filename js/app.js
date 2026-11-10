@@ -1,5 +1,13 @@
 
+// =====================================
+// PALCO LIVRE - APLICACAO PRINCIPAL
+// =====================================
+
 import { db, auth } from "./firebase.js";
+
+// =====================================
+// FIREBASE AUTHENTICATION
+// =====================================
 
 import {
     createUserWithEmailAndPassword,
@@ -8,34 +16,32 @@ import {
     onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 
+// =====================================
+// FIRESTORE
+// =====================================
+
 import {
     collection,
     addDoc,
     doc,
     updateDoc,
+    deleteDoc,
     onSnapshot,
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 
 // =====================================
-// PALCO LIVRE - ELEMENTOS DA PÁGINA
+// ELEMENTOS DA TELA
 // =====================================
 
-// Pesquisa musical
-const searchInput = document.getElementById("artistSearch");
-const searchButton = document.getElementById("searchButton");
-const statusMessage = document.getElementById("status");
-const resultsContainer = document.getElementById("results");
-
-// Autenticação
 const userEmail = document.getElementById("userEmail");
 const userPassword = document.getElementById("userPassword");
+
 const registerButton = document.getElementById("registerButton");
 const loginButton = document.getElementById("loginButton");
 const logoutButton = document.getElementById("logoutButton");
 const authStatus = document.getElementById("authStatus");
 
-// Classificados
 const adForm = document.getElementById("adForm");
 const adTitle = document.getElementById("adTitle");
 const adCategory = document.getElementById("adCategory");
@@ -45,141 +51,87 @@ const adSubmitButton = document.getElementById("adSubmitButton");
 const adStatus = document.getElementById("adStatus");
 const adsList = document.getElementById("adsList");
 
-// API musical
-const API_URL = "https://itunes.apple.com/search";
+// =====================================
+// VARIAVEIS DE CONTROLE
+// =====================================
 
-// Controle da edição
-let editingAdId = null;
 let currentUser = null;
-let cachedAds = [];
+let editingAdId = null;
 
 // =====================================
-// CADASTRO DE USUÁRIO
+// CADASTRO DE USUARIO
 // =====================================
 
-async function registerUser() {
+registerButton.addEventListener("click", async () => {
     const email = userEmail.value.trim();
     const password = userPassword.value;
 
     if (!email || !password) {
-        authStatus.textContent = "Preencha o e-mail e a senha.";
+        authStatus.textContent = "Informe e-mail e senha.";
         return;
     }
-
-    if (password.length < 6) {
-        authStatus.textContent =
-            "A senha deve ter pelo menos 6 caracteres.";
-        return;
-    }
-
-    registerButton.disabled = true;
-    authStatus.textContent = "Criando sua conta...";
 
     try {
         await createUserWithEmailAndPassword(auth, email, password);
 
-        authStatus.textContent =
-            "Conta criada com sucesso! Bem-vindo ao Palco Livre.";
-
-        userPassword.value = "";
+        authStatus.textContent = "Conta criada com sucesso! Bem-vindo ao Palco Livre.";
 
     } catch (error) {
-        console.error("Erro no cadastro:", error);
-
-        if (error.code === "auth/email-already-in-use") {
-            authStatus.textContent = "Este e-mail já está cadastrado.";
-        } else if (error.code === "auth/invalid-email") {
-            authStatus.textContent = "Digite um e-mail válido.";
-        } else if (error.code === "auth/weak-password") {
-            authStatus.textContent = "A senha é muito fraca.";
-        } else {
-            authStatus.textContent =
-                "Não foi possível criar a conta. Tente novamente.";
-        }
-
-    } finally {
-        registerButton.disabled = !!auth.currentUser;
+        authStatus.textContent = "Erro ao criar conta: " + error.message;
     }
-}
+});
 
 // =====================================
-// LOGIN DE USUÁRIO
+// LOGIN
 // =====================================
 
-async function loginUser() {
+loginButton.addEventListener("click", async () => {
     const email = userEmail.value.trim();
     const password = userPassword.value;
 
     if (!email || !password) {
-        authStatus.textContent = "Preencha o e-mail e a senha.";
+        authStatus.textContent = "Informe e-mail e senha.";
         return;
     }
-
-    loginButton.disabled = true;
-    authStatus.textContent = "Verificando seus dados...";
 
     try {
         await signInWithEmailAndPassword(auth, email, password);
 
         authStatus.textContent = "Login realizado com sucesso!";
-        userPassword.value = "";
 
     } catch (error) {
-        console.error("Erro no login:", error);
-
-        if (
-            error.code === "auth/invalid-credential" ||
-            error.code === "auth/wrong-password" ||
-            error.code === "auth/user-not-found"
-        ) {
-            authStatus.textContent = "E-mail ou senha incorretos.";
-        } else if (error.code === "auth/invalid-email") {
-            authStatus.textContent = "Digite um e-mail válido.";
-        } else {
-            authStatus.textContent =
-                "Não foi possível entrar. Tente novamente.";
-        }
-
-    } finally {
-        loginButton.disabled = !!auth.currentUser;
+        authStatus.textContent = "Erro ao entrar: " + error.message;
     }
-}
+});
 
 // =====================================
-// LOGOUT - SAIR DA CONTA
+// LOGOUT
 // =====================================
 
-async function logoutUser() {
+logoutButton.addEventListener("click", async () => {
     try {
         await signOut(auth);
+
         authStatus.textContent = "Você saiu da sua conta.";
 
     } catch (error) {
-        console.error("Erro ao sair:", error);
-        authStatus.textContent =
-            "Não foi possível sair da conta.";
+        authStatus.textContent = "Erro ao sair: " + error.message;
     }
-}
+});
 
 // =====================================
-// ACOMPANHAR ESTADO DA AUTENTICAÇÃO
+// ACOMPANHAR USUARIO LOGADO
 // =====================================
 
 onAuthStateChanged(auth, (user) => {
     currentUser = user;
 
     if (user) {
-        authStatus.textContent =
-            "Você está conectado como: " + user.email;
+        authStatus.textContent = "Logado como: " + user.email;
 
         registerButton.disabled = true;
         loginButton.disabled = true;
         logoutButton.disabled = false;
-
-        adSubmitButton.disabled = false;
-
-        adStatus.textContent =
-            "Você está conectado e já pode publicar anúncios.";
 
     } else {
         authStatus.textContent = "Você não está conectado.";
@@ -188,151 +140,117 @@ onAuthStateChanged(auth, (user) => {
         loginButton.disabled = false;
         logoutButton.disabled = true;
 
-        adSubmitButton.disabled = true;
+        editingAdId = null;
 
-        adStatus.textContent =
-            "Faça login ou crie uma conta para publicar anúncios.";
-
-        // Cancela uma edição se o usuário sair da conta
-        if (editingAdId !== null) {
-            editingAdId = null;
+        if (adForm) {
             adForm.reset();
+        }
+
+        if (adSubmitButton) {
             adSubmitButton.textContent = "Publicar anúncio";
         }
     }
 
-    // Atualiza os botões de edição conforme o usuário conectado
-    displayAds(cachedAds);
+    displayAds();
 });
 
-// Eventos da autenticação
-registerButton.addEventListener("click", registerUser);
-loginButton.addEventListener("click", loginUser);
-logoutButton.addEventListener("click", logoutUser);
-
 // =====================================
-// CADASTRAR OU EDITAR ANÚNCIO
+// CADASTRAR OU ATUALIZAR ANUNCIO
 // =====================================
 
-async function publishAd(event) {
+adForm.addEventListener("submit", async (event) => {
     event.preventDefault();
 
-    const user = auth.currentUser;
-
-    if (!user) {
-        adStatus.textContent =
-            "Você precisa estar conectado para publicar um anúncio.";
+    if (!currentUser) {
+        adStatus.textContent = "Faça login para publicar um anúncio.";
         return;
     }
 
-    const title = adTitle.value.trim();
-    const category = adCategory.value;
-    const price = Number(adPrice.value);
-    const description = adDescription.value.trim();
+    const titulo = adTitle.value.trim();
+    const categoria = adCategory.value;
+    const preco = Number(adPrice.value);
+    const descricao = adDescription.value.trim();
 
-    if (!title || !category || !adPrice.value || !description) {
+    if (!titulo || !categoria || !descricao) {
         adStatus.textContent = "Preencha todos os campos.";
         return;
     }
 
-    if (!Number.isFinite(price) || price < 0) {
+    if (adPrice.value.trim() === "" || !Number.isFinite(preco) || preco < 0) {
         adStatus.textContent = "Informe um preço válido.";
         return;
     }
 
-    adSubmitButton.disabled = true;
-
-    adSubmitButton.textContent =
-        editingAdId ? "Salvando alterações..." : "Publicando...";
-
-    adStatus.textContent =
-        editingAdId
-            ? "Atualizando anúncio no Firebase..."
-            : "Salvando anúncio no Firebase...";
+    const anuncio = {
+        titulo: titulo,
+        categoria: categoria,
+        preco: preco,
+        descricao: descricao,
+        ownerId: currentUser.uid,
+        ownerEmail: currentUser.email
+    };
 
     try {
-        const anuncioData = {
-            titulo: title,
-            categoria: category,
-            preco: price,
-            descricao: description
-        };
+        adSubmitButton.disabled = true;
 
-        if (editingAdId !== null) {
+        if (editingAdId) {
 
-            // UPDATE: atualiza o anúncio existente
-            const anuncioRef = doc(db, "anuncios", editingAdId);
+            // ATUALIZAR ANUNCIO
 
-            await updateDoc(anuncioRef, anuncioData);
+            await updateDoc(
+                doc(db, "anuncios", editingAdId),
+                anuncio
+            );
 
-            adStatus.textContent =
-                "Anúncio atualizado com sucesso!";
+            adStatus.textContent = "Anúncio atualizado com sucesso!";
 
             editingAdId = null;
 
+            adSubmitButton.textContent = "Publicar anúncio";
+
         } else {
 
-            // CREATE: cadastra um novo anúncio
-            await addDoc(collection(db, "anuncios"), {
-                ...anuncioData,
-                ownerId: user.uid,
-                ownerEmail: user.email,
-                criadoEm: serverTimestamp()
-            });
+            // CADASTRAR ANUNCIO
 
-            adStatus.textContent =
-                "Anúncio publicado com sucesso!";
+            anuncio.criadoEm = serverTimestamp();
+
+            await addDoc(collection(db, "anuncios"), anuncio);
+
+            adStatus.textContent = "Anúncio publicado com sucesso!";
         }
 
         adForm.reset();
 
     } catch (error) {
-        console.error("Erro ao salvar anúncio:", error);
-
-        adStatus.textContent =
-            "Não foi possível salvar. Verifique sua conexão e suas permissões.";
+        adStatus.textContent = "Erro ao salvar anúncio: " + error.message;
 
     } finally {
-        adSubmitButton.disabled = !auth.currentUser;
-
-        adSubmitButton.textContent =
-            editingAdId !== null
-                ? "Salvar alterações"
-                : "Publicar anúncio";
+        adSubmitButton.disabled = false;
     }
-}
-
-adForm.addEventListener("submit", publishAd);
+});
 
 // =====================================
-// CARREGAR DADOS PARA EDIÇÃO
+// EDITAR ANUNCIO
 // =====================================
 
 function editAd(anuncio) {
 
-    // Confirma se o usuário é o proprietário
     if (!currentUser || currentUser.uid !== anuncio.ownerId) {
-        adStatus.textContent =
-            "Você não tem permissão para editar este anúncio.";
+        alert("Você só pode editar seus próprios anúncios.");
         return;
     }
 
     editingAdId = anuncio.id;
 
-    // Preenche o formulário com os dados existentes
     adTitle.value = anuncio.titulo || "";
     adCategory.value = anuncio.categoria || "";
     adPrice.value = anuncio.preco ?? "";
     adDescription.value = anuncio.descricao || "";
 
-    // Altera o botão para indicar a edição
     adSubmitButton.textContent = "Salvar alterações";
-    adSubmitButton.disabled = false;
 
-    adStatus.textContent =
-        "Editando anúncio. Faça as alterações e clique em Salvar alterações.";
+    adStatus.textContent = "Editando anúncio: " + anuncio.titulo;
 
-    // Leva o usuário até o formulário
     adForm.scrollIntoView({
         behavior: "smooth",
         block: "center"
@@ -340,130 +258,176 @@ function editAd(anuncio) {
 }
 
 // =====================================
-// LISTAR ANÚNCIOS DO FIREBASE
+// EXCLUIR ANUNCIO
 // =====================================
 
-function displayAds(anuncios) {
-    adsList.replaceChildren();
+async function deleteAd(anuncio) {
 
-    if (anuncios.length === 0) {
-        adsList.textContent =
-            "Ainda não existem anúncios publicados.";
+    if (!currentUser) {
+        alert("Faça login para excluir um anúncio.");
         return;
     }
 
-    anuncios.forEach((anuncio) => {
-        const card = document.createElement("article");
-        card.className = "card";
+    if (currentUser.uid !== anuncio.ownerId) {
+        alert("Você só pode excluir seus próprios anúncios.");
+        return;
+    }
 
-        const title = document.createElement("h3");
-        title.textContent = anuncio.titulo || "Instrumento";
-        card.appendChild(title);
+    const confirmar = window.confirm(
+        'Tem certeza que deseja excluir o anúncio "' +
+        anuncio.titulo +
+        '"?'
+    );
 
-        const category = document.createElement("p");
-        category.textContent =
-            "Categoria: " + (anuncio.categoria || "Não informada");
-        card.appendChild(category);
+    if (!confirmar) {
+        return;
+    }
 
-        const price = document.createElement("p");
-        price.textContent =
-            "Preço: " +
-            Number(anuncio.preco || 0).toLocaleString("pt-BR", {
-                style: "currency",
-                currency: "BRL"
-            });
-        card.appendChild(price);
+    try {
 
-        const description = document.createElement("p");
-        description.textContent =
-            anuncio.descricao || "Sem descrição.";
-        card.appendChild(description);
+        await deleteDoc(
+            doc(db, "anuncios", anuncio.id)
+        );
 
-        const seller = document.createElement("small");
-        seller.textContent =
-            "Anunciante: " +
-            (anuncio.ownerEmail || "Usuário do Palco Livre");
-        card.appendChild(seller);
+        // Se o anuncio excluido estava sendo editado,
+        // limpar o formulario.
 
-        // Botão de edição somente para o proprietário
-        if (currentUser && currentUser.uid === anuncio.ownerId) {
-            const editButton = document.createElement("button");
-
-            editButton.type = "button";
-            editButton.textContent = "Editar anúncio";
-
-            editButton.addEventListener("click", () => {
-                editAd(anuncio);
-            });
-
-            card.appendChild(editButton);
+        if (editingAdId === anuncio.id) {
+            editingAdId = null;
+            adForm.reset();
+            adSubmitButton.textContent = "Publicar anúncio";
         }
 
-        adsList.appendChild(card);
-    });
+        adStatus.textContent = "Anúncio excluído com sucesso!";
+
+    } catch (error) {
+        adStatus.textContent = "Erro ao excluir anúncio: " + error.message;
+    }
 }
 
 // =====================================
-// ACOMPANHAR ANÚNCIOS EM TEMPO REAL
+// LISTAR ANUNCIOS DO FIRESTORE
 // =====================================
 
-onSnapshot(
-    collection(db, "anuncios"),
+function displayAds() {
 
-    (snapshot) => {
-        cachedAds = [];
+    onSnapshot(collection(db, "anuncios"), (snapshot) => {
+
+        adsList.innerHTML = "";
+
+        if (snapshot.empty) {
+            adsList.innerHTML = "<p>Nenhum anúncio publicado ainda.</p>";
+            return;
+        }
 
         snapshot.forEach((documento) => {
-            cachedAds.push({
+
+            const anuncio = {
                 id: documento.id,
                 ...documento.data()
-            });
+            };
+
+            const card = document.createElement("div");
+            card.className = "ad-card";
+
+            const titulo = document.createElement("h3");
+            titulo.textContent = anuncio.titulo || "Sem título";
+
+            const categoria = document.createElement("p");
+            categoria.textContent = "Categoria: " + (anuncio.categoria || "Não informada");
+
+            const preco = document.createElement("p");
+            preco.textContent = "Preço: " + Number(anuncio.preco || 0).toLocaleString(
+                "pt-BR",
+                {
+                    style: "currency",
+                    currency: "BRL"
+                }
+            );
+
+            const descricao = document.createElement("p");
+            descricao.textContent = anuncio.descricao || "";
+
+            const vendedor = document.createElement("p");
+            vendedor.textContent = "Vendedor: " + (anuncio.ownerEmail || "Não informado");
+
+            card.appendChild(titulo);
+            card.appendChild(categoria);
+            card.appendChild(preco);
+            card.appendChild(descricao);
+            card.appendChild(vendedor);
+
+            // BOTOES SOMENTE PARA O PROPRIETARIO
+
+            if (currentUser && currentUser.uid === anuncio.ownerId) {
+
+                const editButton = document.createElement("button");
+
+                editButton.type = "button";
+                editButton.textContent = "Editar anúncio";
+
+                editButton.addEventListener("click", () => {
+                    editAd(anuncio);
+                });
+
+                card.appendChild(editButton);
+
+                const deleteButton = document.createElement("button");
+
+                deleteButton.type = "button";
+                deleteButton.textContent = "Excluir anúncio";
+
+                deleteButton.addEventListener("click", () => {
+                    deleteAd(anuncio);
+                });
+
+                card.appendChild(deleteButton);
+            }
+
+            adsList.appendChild(card);
         });
 
-        // Exibe os anúncios mais recentes primeiro
-        cachedAds.sort((a, b) => {
-            const dataA = a.criadoEm?.toMillis?.() || 0;
-            const dataB = b.criadoEm?.toMillis?.() || 0;
+    }, (error) => {
 
-            return dataB - dataA;
-        });
+        adsList.textContent = "Erro ao carregar anúncios: " + error.message;
 
-        displayAds(cachedAds);
-    },
-
-    (error) => {
-        console.error("Erro ao carregar anúncios:", error);
-
-        adsList.textContent =
-            "Não foi possível carregar os anúncios.";
-    }
-);
+    });
+}
 
 // =====================================
 // PESQUISA MUSICAL - ITUNES API
 // =====================================
 
-async function searchMusic() {
-    const searchTerm = searchInput.value.trim();
+const artistSearch = document.getElementById("artistSearch");
+const searchButton = document.getElementById("searchButton");
+const status = document.getElementById("status");
+const results = document.getElementById("results");
 
-    if (!searchTerm) {
-        statusMessage.textContent =
-            "Digite o nome de um artista ou banda.";
-        searchInput.focus();
+// =====================================
+// BUSCAR MUSICAS
+// =====================================
+
+async function searchMusic() {
+
+    const artist = artistSearch.value.trim();
+
+    if (!artist) {
+        status.textContent = "Digite o nome de um artista ou banda.";
+        results.innerHTML = "";
         return;
     }
 
-    searchButton.disabled = true;
-    searchButton.textContent = "Pesquisando...";
-    statusMessage.textContent =
-        "Buscando informações musicais...";
-
-    resultsContainer.replaceChildren();
+    status.textContent = "Buscando músicas...";
+    results.innerHTML = "";
 
     try {
-        const response = await fetch(
-            `${API_URL}?term=${encodeURIComponent(searchTerm)}&entity=musicArtist,song,musicTrack,album&limit=12`
-        );
+
+        const url =
+            "https://itunes.apple.com/search?term=" +
+            encodeURIComponent(artist) +
+            "&entity=song&limit=12";
+
+        const response = await fetch(url);
 
         if (!response.ok) {
             throw new Error("Não foi possível consultar a API.");
@@ -471,103 +435,62 @@ async function searchMusic() {
 
         const data = await response.json();
 
-        if (!data.results || data.results.length === 0) {
-            statusMessage.textContent =
-                "Nenhum resultado encontrado. Tente outra pesquisa.";
-            return;
-        }
-
         displayResults(data.results);
 
-        statusMessage.textContent =
-            `${data.results.length} resultado(s) encontrado(s).`;
+        if (data.results.length === 0) {
+            status.textContent = "Nenhuma música encontrada.";
+        } else {
+            status.textContent = data.results.length + " resultado(s) encontrado(s).";
+        }
 
     } catch (error) {
-        console.error("Erro na pesquisa musical:", error);
 
-        statusMessage.textContent =
-            "Erro ao buscar dados musicais. Verifique sua conexão e tente novamente.";
-
-    } finally {
-        searchButton.disabled = false;
-        searchButton.textContent = "Pesquisar";
+        status.textContent = "Erro na pesquisa: " + error.message;
     }
 }
 
 // =====================================
-// EXIBIR RESULTADOS DA PESQUISA
+// EXIBIR RESULTADOS MUSICAIS
 // =====================================
 
 function displayResults(musicList) {
-    resultsContainer.replaceChildren();
+
+    results.innerHTML = "";
 
     musicList.forEach((music) => {
-        const card = document.createElement("article");
-        card.className = "card";
 
-        if (music.artworkUrl100) {
-            const image = document.createElement("img");
+        const card = document.createElement("div");
+        card.className = "music-card";
 
-            image.src = music.artworkUrl100;
-            image.alt =
-                `Imagem de ${music.trackName || music.collectionName || music.artistName || "conteúdo musical"}`;
-            image.loading = "lazy";
-            image.style.width = "100%";
-            image.style.maxWidth = "180px";
-            image.style.borderRadius = "8px";
-            image.style.marginBottom = "15px";
+        const image = document.createElement("img");
 
-            card.appendChild(image);
-        }
+        image.src = music.artworkUrl100 || "";
+        image.alt = "Capa do álbum";
+        image.loading = "lazy";
 
         const title = document.createElement("h3");
-
-        title.textContent =
-            music.trackName ||
-            music.collectionName ||
-            music.artistName ||
-            "Conteúdo musical";
-
-        card.appendChild(title);
+        title.textContent = music.trackName || "Música sem título";
 
         const artist = document.createElement("p");
+        artist.textContent = music.artistName || "Artista desconhecido";
 
-        artist.textContent =
-            "Artista: " + (music.artistName || "Não informado");
+        const genre = document.createElement("p");
+        genre.textContent = music.primaryGenreName || "Gênero não informado";
 
+        const link = document.createElement("a");
+
+        link.href = music.trackViewUrl || "#";
+        link.textContent = "Ouvir no Apple Music";
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+
+        card.appendChild(image);
+        card.appendChild(title);
         card.appendChild(artist);
+        card.appendChild(genre);
+        card.appendChild(link);
 
-        if (music.primaryGenreName) {
-            const genre = document.createElement("p");
-
-            genre.textContent =
-                "Gênero: " + music.primaryGenreName;
-
-            card.appendChild(genre);
-        }
-
-        const musicLink =
-            music.trackViewUrl ||
-            music.collectionViewUrl ||
-            music.artistViewUrl;
-
-        if (musicLink) {
-            const link = document.createElement("a");
-
-            link.href = musicLink;
-            link.target = "_blank";
-            link.rel = "noopener noreferrer";
-            link.textContent = "Ver na Apple Music ↗";
-
-            link.style.display = "inline-block";
-            link.style.marginTop = "15px";
-            link.style.color = "#ff9b59";
-            link.style.textDecoration = "none";
-
-            card.appendChild(link);
-        }
-
-        resultsContainer.appendChild(card);
+        results.appendChild(card);
     });
 }
 
@@ -577,8 +500,14 @@ function displayResults(musicList) {
 
 searchButton.addEventListener("click", searchMusic);
 
-searchInput.addEventListener("keydown", (event) => {
+artistSearch.addEventListener("keydown", (event) => {
+
     if (event.key === "Enter") {
         searchMusic();
     }
+
 });
+
+// =====================================
+// FIM DO PALCO LIVRE
+// =====================================
