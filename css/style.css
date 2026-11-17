@@ -1,4 +1,3 @@
-
 /* =====================================
    PALCO LIVRE - IDENTIDADE VISUAL
    ===================================== */
@@ -11,6 +10,7 @@
 
 html {
     scroll-behavior: smooth;
+    scroll-padding-top: 95px;
 }
 
 body {
@@ -19,8 +19,6 @@ body {
     color: #f5f5f5;
     line-height: 1.6;
 }
-
-/* CONTAINER */
 
 .container {
     width: 90%;
@@ -51,12 +49,14 @@ header {
     font-size: 25px;
     font-weight: bold;
     text-decoration: none;
+    white-space: nowrap;
 }
 
 nav {
     display: flex;
-    gap: 25px;
+    gap: 18px;
     flex-wrap: wrap;
+    justify-content: flex-end;
 }
 
 nav a {
@@ -73,12 +73,7 @@ nav a:hover {
 /* DESTAQUE PRINCIPAL */
 
 .hero {
-    background: linear-gradient(
-        120deg,
-        #24153d,
-        #17172b,
-        #382044
-    );
+    background: linear-gradient(120deg, #24153d, #17172b, #382044);
     padding: 100px 0;
     text-align: center;
 }
@@ -115,6 +110,9 @@ nav a:hover {
 /* SEÇÕES */
 
 .sections,
+.classified-section,
+.equipment-section,
+.auth-section,
 .music-search {
     padding-top: 65px;
     padding-bottom: 65px;
@@ -122,28 +120,116 @@ nav a:hover {
 
 h2 {
     font-size: 28px;
-    margin-bottom: 25px;
+    margin-bottom: 20px;
     color: #ff9b59;
+}
+
+.section-intro,
+.auth-section > p {
+    color: #c5c5d0;
+    margin-bottom: 22px;
+}
+
+.subheading {
+    color: #ffffff;
+    font-size: 20px;
+    margin: 28px 0 15px;
+}
+
+/* FORMULÁRIOS */
+
+.data-form {
+    background: #1c1c29;
+    border: 1px solid #333343;
+    border-radius: 12px;
+    padding: 25px;
+    margin: 20px 0;
+    display: grid;
+    gap: 15px;
+}
+
+.data-form input,
+.data-form select,
+.data-form textarea,
+.filter-box input,
+.filter-box select,
+.auth-section input {
+    width: 100%;
+    min-width: 0;
+    padding: 14px;
+    border-radius: 8px;
+    border: 1px solid #444455;
+    background: #22222f;
+    color: #ffffff;
+    font-size: 15px;
+    font-family: Arial, Helvetica, sans-serif;
+    outline: none;
+}
+
+.data-form input:focus,
+.data-form select:focus,
+.data-form textarea:focus,
+.filter-box input:focus,
+.filter-box select:focus,
+.auth-section input:focus {
+    border-color: #ff8c42;
+}
+
+.data-form textarea {
+    resize: vertical;
+}
+
+.data-form button,
+.card-actions button,
+.search-box button {
+    padding: 13px 22px;
+    background: #ff8c42;
+    border: none;
+    border-radius: 8px;
+    color: #171717;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.data-form button:hover,
+.card-actions button:hover,
+.search-box button:hover {
+    background: #ffaa70;
+}
+
+button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.status-message,
+#authStatus {
+    color: #ffb276;
+    margin: 12px 0 20px;
+    overflow-wrap: anywhere;
 }
 
 /* CARTÕES */
 
 .cards {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 22px;
 }
 
 .card {
     background: #1c1c29;
-    padding: 28px;
+    padding: 25px;
     border: 1px solid #333343;
     border-radius: 12px;
     transition: 0.3s;
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 
 .card:hover {
-    transform: translateY(-5px);
+    transform: translateY(-3px);
     border-color: #ff8c42;
 }
 
@@ -155,6 +241,52 @@ h2 {
 
 .card p {
     color: #b9b9c5;
+    margin-bottom: 8px;
+}
+
+.card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 15px;
+}
+
+.card-actions .danger-button {
+    background: #b94b4b;
+    color: #ffffff;
+}
+
+.card-actions .danger-button:hover {
+    background: #d45d5d;
+}
+
+/* AUTENTICAÇÃO */
+
+.auth-section .search-box {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.auth-section .search-box button {
+    flex: 1;
+}
+
+/* EQUIPAMENTOS */
+
+.equipment-section {
+    background: #15151f;
+    padding-left: 5%;
+    padding-right: 5%;
+    border-radius: 15px;
+    margin-bottom: 60px;
+}
+
+.filter-box {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 12px;
+    margin: 22px 0;
 }
 
 /* PESQUISA MUSICAL */
@@ -194,28 +326,24 @@ h2 {
     border-color: #ff8c42;
 }
 
-.search-box button {
-    padding: 14px 24px;
-    background: #ff8c42;
-    border: none;
-    border-radius: 8px;
-    color: #171717;
-    font-weight: bold;
-    cursor: pointer;
-    transition: 0.3s;
-}
-
-.search-box button:hover {
-    background: #ffaa70;
-}
-
 #status {
     margin-bottom: 20px;
     color: #ffb276;
 }
 
-#results .card {
-    overflow-wrap: anywhere;
+.music-card img {
+    width: 100%;
+    max-width: 180px;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 12px;
+}
+
+.music-card a {
+    display: inline-block;
+    color: #ff9b59;
+    margin-top: 10px;
 }
 
 /* RODAPÉ */
@@ -231,7 +359,10 @@ footer {
 
 /* RESPONSIVIDADE */
 
-@media (max-width: 768px) {
+@media (max-width: 900px) {
+    .cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
 
     .navbar {
         flex-direction: column;
@@ -240,26 +371,41 @@ footer {
 
     nav {
         justify-content: center;
-        gap: 15px;
+    }
+}
+
+@media (max-width: 600px) {
+    .cards {
+        grid-template-columns: 1fr;
     }
 
     .hero {
         padding: 70px 15px;
     }
 
-    .cards {
-        grid-template-columns: 1fr;
-    }
-
-    .search-box {
+    .search-box,
+    .auth-section .search-box {
         flex-direction: column;
     }
 
-    .search-box button {
+    .search-box button,
+    .auth-section .search-box button {
         width: 100%;
+    }
+
+    .filter-box {
+        grid-template-columns: 1fr;
+    }
+
+    .data-form {
+        padding: 18px;
     }
 
     h2 {
         font-size: 23px;
+    }
+
+    nav {
+        gap: 12px;
     }
 }
