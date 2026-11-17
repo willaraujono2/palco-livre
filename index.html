@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -17,8 +16,9 @@
             <nav>
                 <a href="#inicio">Início</a>
                 <a href="#conta">Minha Conta</a>
-                <a href="#musicos">Músicos</a>
+                <a href="#musicos">Músicos e Bandas</a>
                 <a href="#classificados">Classificados</a>
+                <a href="#equipamentos">Equipamentos</a>
                 <a href="#musicas">Universo Musical</a>
             </nav>
         </div>
@@ -44,120 +44,116 @@
             <p>Cadastre-se ou entre na sua conta do Palco Livre.</p>
 
             <div class="search-box">
-                <input
-                    type="email"
-                    id="userEmail"
-                    placeholder="Seu e-mail"
-                    required
-                >
-
-                <input
-                    type="password"
-                    id="userPassword"
-                    placeholder="Sua senha"
-                    required
-                >
+                <input type="email" id="userEmail" placeholder="Seu e-mail" required>
+                <input type="password" id="userPassword" placeholder="Sua senha" required>
             </div>
 
             <div class="search-box">
-                <button type="button" id="registerButton">
-                    Criar conta
-                </button>
-
-                <button type="button" id="loginButton">
-                    Entrar
-                </button>
-
-                <button type="button" id="logoutButton">
-                    Sair
-                </button>
+                <button type="button" id="registerButton">Criar conta</button>
+                <button type="button" id="loginButton">Entrar</button>
+                <button type="button" id="logoutButton">Sair</button>
             </div>
 
             <p id="authStatus" aria-live="polite"></p>
         </section>
 
-        <!-- COMUNIDADE MUSICAL -->
+        <!-- COMUNIDADE: MUSICOS E BANDAS -->
         <section class="container sections" id="musicos">
-            <h2>Conecte-se através da música</h2>
+            <h2>Músicos e Bandas</h2>
+            <p class="section-intro">
+                Encontre integrantes, divulgue sua banda e conecte-se com pessoas
+                que compartilham seu interesse pela música.
+            </p>
 
-            <div class="cards">
-                <article class="card">
-                    <h3>🎤 Músicos e Bandas</h3>
-                    <p>Encontre integrantes ou uma banda para tocar.</p>
-                </article>
+            <h3 class="subheading">Cadastre seu perfil musical</h3>
 
-                <article class="card" id="classificados">
-                    <h3>🎸 Classificados</h3>
-                    <p>Compre, venda e anuncie instrumentos musicais.</p>
-                </article>
+            <form id="profileForm" class="data-form">
+                <select id="profileType" required>
+                    <option value="">Selecione o tipo de perfil</option>
+                    <option value="Músico">Músico</option>
+                    <option value="Banda">Banda</option>
+                </select>
 
-                <article class="card">
-                    <h3>🥁 Equipamentos</h3>
-                    <p>Conheça instrumentos e equipamentos musicais.</p>
-                </article>
+                <input type="text" id="profileName" placeholder="Nome do músico ou banda" maxlength="80" required>
+                <input type="text" id="profileInstrument" placeholder="Instrumento ou estilo musical" maxlength="100" required>
+                <input type="text" id="profileCity" placeholder="Cidade" maxlength="80" required>
+
+                <textarea id="profileDescription" placeholder="Fale um pouco sobre você ou sua banda..." rows="4" maxlength="1000" required></textarea>
+
+                <button type="submit" id="profileSubmitButton">Cadastrar perfil</button>
+            </form>
+
+            <p id="profileStatus" class="status-message" aria-live="polite"></p>
+
+            <h3 class="subheading">Perfis da comunidade</h3>
+            <div id="profilesList" class="cards">
+                <p>Carregando perfis...</p>
             </div>
         </section>
 
-<!-- CLASSIFICADOS DE INSTRUMENTOS -->
-<section class="container classified-section" id="anuncios">
+        <!-- CLASSIFICADOS DE INSTRUMENTOS -->
+        <section class="container classified-section" id="classificados">
+            <h2>Classificados de Instrumentos</h2>
 
-    <h2>Classificados de Instrumentos</h2>
+            <p class="section-intro">
+                Anuncie instrumentos e equipamentos musicais
+                para a comunidade Palco Livre.
+            </p>
 
-    <p>
-        Anuncie instrumentos e equipamentos musicais
-        para a comunidade Palco Livre.
-    </p>
+            <form id="adForm" class="data-form">
+                <input type="text" id="adTitle" placeholder="Nome do instrumento" maxlength="100" required>
 
-    <!-- FORMULÁRIO DE CADASTRO -->
-    <form id="adForm">
+                <select id="adCategory" required>
+                    <option value="">Selecione a categoria</option>
+                    <option value="Cordas">Instrumentos de cordas</option>
+                    <option value="Percussão">Percussão</option>
+                    <option value="Sopro">Sopro</option>
+                    <option value="Teclados">Teclados</option>
+                    <option value="Equipamentos">Equipamentos</option>
+                    <option value="Acessórios">Acessórios</option>
+                </select>
 
-        <input
-            type="text"
-            id="adTitle"
-            placeholder="Nome do instrumento"
-            required
-        >
+                <input type="number" id="adPrice" placeholder="Preço (R$)" min="0" step="0.01" required>
 
-        <select id="adCategory" required>
-            <option value="">Selecione a categoria</option>
-            <option value="Cordas">Instrumentos de cordas</option>
-            <option value="Percussão">Percussão</option>
-            <option value="Sopro">Sopro</option>
-            <option value="Teclados">Teclados</option>
-            <option value="Equipamentos">Equipamentos</option>
-            <option value="Acessórios">Acessórios</option>
-        </select>
+                <textarea id="adDescription" placeholder="Descreva o instrumento..." rows="4" maxlength="1000" required></textarea>
 
-        <input
-            type="number"
-            id="adPrice"
-            placeholder="Preço (R$)"
-            min="0"
-            step="0.01"
-            required
-        >
+                <button type="submit" id="adSubmitButton">Publicar anúncio</button>
+            </form>
 
-        <textarea
-            id="adDescription"
-            placeholder="Descreva o instrumento..."
-            rows="4"
-            required
-        ></textarea>
+            <p id="adStatus" class="status-message" aria-live="polite"></p>
 
-        <button type="submit" id="adSubmitButton">
-            Publicar anúncio
-        </button>
+            <h3 class="subheading">Instrumentos anunciados</h3>
+            <div id="adsList" class="cards">
+                <p>Carregando anúncios...</p>
+            </div>
+        </section>
 
-    </form>
+        <!-- VITRINE DE EQUIPAMENTOS: USA OS MESMOS ANUNCIOS DO FIRESTORE -->
+        <section class="container equipment-section" id="equipamentos">
+            <h2>Equipamentos e Instrumentos</h2>
+            <p class="section-intro">
+                Consulte os anúncios publicados pela comunidade. Os itens exibidos
+                aqui são os mesmos cadastrados nos Classificados.
+            </p>
 
-    <p id="adStatus" aria-live="polite"></p>
+            <div class="filter-box">
+                <input type="search" id="equipmentSearch" placeholder="Buscar por nome ou descrição...">
+                <select id="equipmentCategory">
+                    <option value="">Todas as categorias</option>
+                    <option value="Cordas">Instrumentos de cordas</option>
+                    <option value="Percussão">Percussão</option>
+                    <option value="Sopro">Sopro</option>
+                    <option value="Teclados">Teclados</option>
+                    <option value="Equipamentos">Equipamentos</option>
+                    <option value="Acessórios">Acessórios</option>
+                </select>
+            </div>
 
-    <!-- LISTAGEM DOS ANÚNCIOS -->
-    <h3>Instrumentos anunciados</h3>
-
-    <div id="adsList" class="cards"></div>
-
-</section>
+            <p id="equipmentStatus" class="status-message" aria-live="polite"></p>
+            <div id="equipmentList" class="cards">
+                <p>Carregando equipamentos...</p>
+            </div>
+        </section>
 
         <!-- PESQUISA MUSICAL -->
         <section class="container music-search" id="musicas">
@@ -165,28 +161,21 @@
             <p>Pesquise artistas, álbuns e músicas.</p>
 
             <div class="search-box">
-                <input
-                    type="text"
-                    id="artistSearch"
-                    placeholder="Digite o nome de um artista..."
-                >
-
-                <button id="searchButton">Pesquisar</button>
+                <input type="text" id="artistSearch" placeholder="Digite o nome de um artista...">
+                <button type="button" id="searchButton">Pesquisar</button>
             </div>
 
-            <p id="status"></p>
+            <p id="status" aria-live="polite"></p>
             <div id="results" class="cards"></div>
         </section>
 
     </main>
 
-    <!-- RODAPÉ -->
     <footer>
         <p>Palco Livre © 2026 - Projeto Acadêmico WEB 2</p>
         <p>Conectando pessoas através da música.</p>
     </footer>
 
     <script type="module" src="js/app.js"></script>
-
 </body>
 </html>
